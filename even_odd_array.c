@@ -1,7 +1,7 @@
 #include<stdio.h>
-void main()
+int main()
 {
-	int n,odd[100],even[100],arr[100],i,j=0,k=0;
+	int n,odd[500],even[100],arr[100],i,j=0,k=0;
 	printf("Enter the range of array ");
 	scanf("%d",&n);
 	printf("Enter the elements \n");
