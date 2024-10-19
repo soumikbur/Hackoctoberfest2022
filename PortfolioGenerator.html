@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Generator</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff4081, #ff6f20);
+            margin: 0;
+            padding: 0;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        label {
+            margin-top: 10px;
+            display: block;
+            font-weight: bold;
+            text-align: left;
+            font-size: 1.2em;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 5px 0 20px;
+            border: none;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            background-color: rgba(255, 255, 255, 0.2);
+            outline: none;
+        }
+
+        input[type="file"] {
+            margin: 5px 0 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #00c853;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin: 10px 0;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #1de9b6;
+            transform: translateY(-2px);
+        }
+
+        .portfolio-preview {
+            margin-top: 30px;
+            padding: 15px;
+            border: 2px solid #ff6f20;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: left;
+        }
+
+        img {
+            max-width: 80px; /* Set width to create 4cm radius circle */
+            max-height: 80px; /* Set height to match width */
+            border-radius: 50%;
+            margin: 10px 0;
+        }
+
+        @media print {
+            button {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Portfolio Generator</h1>
+        <form id="portfolioForm">
+            <label for="photo">Upload Your Photo:</label>
+            <input type="file" id="photo" accept="image/*" required>
+
+            <label for="name">Name:</label>
+            <input type="text" id="name" placeholder="Your Name" required>
+
+            <label for="skills">Skills:</label>
+            <textarea id="skills" placeholder="Your Skills (comma separated)" required></textarea>
+
+            <label for="projects">Projects:</label>
+            <textarea id="projects" placeholder="Your Projects (comma separated)" required></textarea>
+
+            <label for="experience">Experience:</label>
+            <textarea id="experience" placeholder="Your Experience (comma separated)" required></textarea>
+
+            <button type="button" id="generateButton">Generate Portfolio</button>
+        </form>
+
+        <div id="portfolioPreview" class="portfolio-preview" style="display:none;">
+            <h2>Portfolio Preview</h2>
+            <div id="previewContent"></div>
+        </div>
+
+        <button id="downloadButton" style="display: none;">Download PDF</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const nameInput = document.getElementById("name");
+            const skillsInput = document.getElementById("skills");
+            const projectsInput = document.getElementById("projects");
+            const experienceInput = document.getElementById("experience");
+            const photoInput = document.getElementById("photo");
+            const generateButton = document.getElementById("generateButton");
+            const previewContent = document.getElementById("previewContent");
+            const downloadButton = document.getElementById("downloadButton");
+            const portfolioPreview = document.getElementById("portfolioPreview");
+
+            // Load saved data from localStorage
+            nameInput.value = localStorage.getItem("name") || "";
+            skillsInput.value = localStorage.getItem("skills") || "";
+            projectsInput.value = localStorage.getItem("projects") || "";
+            experienceInput.value = localStorage.getItem("experience") || "";
+
+            // Update localStorage when inputs change
+            [nameInput, skillsInput, projectsInput, experienceInput].forEach(input => {
+                input.addEventListener("input", () => {
+                    localStorage.setItem(input.id, input.value);
+                });
+            });
+
+            // Generate portfolio preview
+            generateButton.addEventListener("click", () => {
+                const name = nameInput.value;
+                const skills = skillsInput.value.split(',').map(skill => skill.trim()).join(', ');
+                const projects = projectsInput.value.split(',').map(project => project.trim()).join(', ');
+                const experience = experienceInput.value.split(',').map(exp => exp.trim()).join(', ');
+                const photoFile = photoInput.files[0];
+
+                // Create a FileReader to read the uploaded photo
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewContent.innerHTML = `
+                        <img src="${e.target.result}" alt="User Photo">
+                        <h3>${name}'s Portfolio</h3>
+                        <p><strong>Skills:</strong> ${skills}</p>
+                        <p><strong>Projects:</strong> ${projects}</p>
+                        <p><strong>Experience:</strong> ${experience}</p>
+                    `;
+                    portfolioPreview.style.display = 'block'; // Show the portfolio preview
+                    downloadButton.style.display = 'block'; // Show the download button
+                };
+                if (photoFile) {
+                    reader.readAsDataURL(photoFile); // Read the uploaded photo
+                }
+            });
+
+            // Download portfolio as PDF
+            downloadButton.addEventListener("click", () => {
+                const portfolioPreviewContent = document.createElement('div');
+                const photoFile = photoInput.files[0];
+
+                // Create a FileReader to read the uploaded photo
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    portfolioPreviewContent.innerHTML = `
+                        <img src="${e.target.result}" alt="User Photo" style="max-width: 80px; border-radius: 50%;">
+                        <h3>${nameInput.value}'s Portfolio</h3>
+                        <p><strong>Skills:</strong> ${skillsInput.value.split(',').map(skill => skill.trim()).join(', ')}</p>
+                        <p><strong>Projects:</strong> ${projectsInput.value.split(',').map(project => project.trim()).join(', ')}</p>
+                        <p><strong>Experience:</strong> ${experienceInput.value.split(',').map(exp => exp.trim()).join(', ')}</p>
+                    `;
+                    
+                    // Generate PDF from the created content
+                    html2pdf()
+                        .from(portfolioPreviewContent)
+                        .save(`${nameInput.value}_Portfolio.pdf`);
+                };
+                if (photoFile) {
+                    reader.readAsDataURL(photoFile); // Read the uploaded photo
+                }
+            });
+        });
+    </script>
+</body>
+</html>
